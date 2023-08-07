@@ -14,6 +14,7 @@ public class Handler implements Runnable {
     private Socket socket;
     private final List<String> validPaths = List.of("/index.html", "/spring.svg", "/spring.png", "/resources.html",
             "/styles.css", "/app.js", "/links.html", "/forms.html", "/classic.html", "/events.html", "/events.js");
+    private boolean equals;
 
 
     public Handler(Socket socket) {
@@ -68,18 +69,47 @@ public class Handler implements Runnable {
                     continue;
                 }
 
-                final var length = Files.size(filePath);
-                out.write((
-                        "HTTP/1.1 200 OK\r\n" +
-                                "Content-Type: " + mimeType + "\r\n" +
-                                "Content-Length: " + length + "\r\n" +
-                                "Connection: close\r\n" +
-                                "\r\n"
-                ).getBytes());
-                Files.copy(filePath, out);
-                out.flush();
-            }
+                String s = "/messages";
+                if (equals)
+                throw new IllegalStateException("Unexpected value: " + ("/messages"));
+                {
+                    final var template = Files.readString(filePath);
+                    final var content = template.replace(
+                            "{time}",
+                            LocalDateTime.now().toString()
+                    ).getBytes();
+                    out.write((
+                            "HTTP/1.1 200 OK\r\n" +
+                                    "Content-Type: " + mimeType + "\r\n" +
+                                    "Content-Length: " + content.length + "\r\n" +
+                                    "Connection: close\r\n" +
+                                    "\r\n"
+                    ).getBytes());
+                    out.write(content);
+                    out.flush();
+                }
 
+                String t = "/messages?last=10";
+                if (equals)
+                    throw new IllegalStateException("Unexpected value: " + ("/messages"));
+                {
+                    final var template = Files.readString(filePath);
+                    final var content = template.replace(
+                            "{time}",
+                            LocalDateTime.now().toString()
+                    ).getBytes();
+                    out.write((
+                            "HTTP/1.1 200 OK\r\n" +
+                                    "Content-Type: " + mimeType + "\r\n" +
+                                    "Content-Length: " + content.length + "\r\n" +
+                                    "Connection: close\r\n" +
+                                    "\r\n"
+                    ).getBytes());
+                    out.write(content);
+                    out.flush();
+                }
+
+            }
 
         } catch (IOException ex) {
             System.out.println(ex.getMessage());
